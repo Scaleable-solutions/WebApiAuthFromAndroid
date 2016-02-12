@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -20,48 +19,11 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.NoSuchPaddingException;
 
-public class MainActivity extends AppCompatActivity implements WebServiceCallBack<String> {
+public class MainActivity extends AppCompatActivity {
 
-    TextView tv_name;
     LocalStorage storage;
     private AuthenticationContext context;
     private ProgressDialog dialog;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        try {
-            context = new AuthenticationContext(MainActivity.this, Constants.AUTHORITY_URL, true);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        }
-
-        dialog = new ProgressDialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setMessage("progressing...");
-
-
-        tv_name = (TextView) findViewById(R.id.tv_fullname);
-
-        storage = new LocalStorage(this);
-
-        Button btn_Submit = (Button) findViewById(R.id.btn_submit);
-        btn_Submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                context.acquireToken(MainActivity.this,
-                        Constants.SERVICE_URL,
-                        Constants.CLIENT_ID,
-                        Constants.REDIRECT_URL, "", PromptBehavior.Auto, "", callback);
-                dialog.show();
-
-            }
-        });
-    }
-
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
@@ -87,8 +49,8 @@ public class MainActivity extends AppCompatActivity implements WebServiceCallBac
                 ServiceTask task = new ServiceTask(MainActivity.this, ServiceTask.GET_USER_ID, new WebServiceCallBack<String>() {
                     @Override
                     public void OnSuccess(String result) {
-                        Intent i = new Intent(MainActivity.this,NameActivity.class);
-                        i.putExtra("user_id",result);
+                        Intent i = new Intent(MainActivity.this, NameActivity.class);
+                        i.putExtra("user_id", result);
                         startActivity(i);
                     }
 
@@ -102,7 +64,37 @@ public class MainActivity extends AppCompatActivity implements WebServiceCallBac
         }
     };
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        try {
+            context = new AuthenticationContext(MainActivity.this, Constants.AUTHORITY_URL, true);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
 
+        dialog = new ProgressDialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setMessage("progressing...");
+
+        storage = new LocalStorage(this);
+
+        Button btn_Submit = (Button) findViewById(R.id.btn_submit);
+        btn_Submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.acquireToken(MainActivity.this,
+                        Constants.SERVICE_URL,
+                        Constants.CLIENT_ID,
+                        Constants.REDIRECT_URL, "", PromptBehavior.Auto, "", callback);
+                dialog.show();
+
+            }
+        });
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -110,16 +102,5 @@ public class MainActivity extends AppCompatActivity implements WebServiceCallBac
         if (context != null) {
             context.onActivityResult(requestCode, resultCode, data);
         }
-    }
-
-    @Override
-    public void OnSuccess(String result) {
-        tv_name.setText(result);
-        dialog.dismiss();
-    }
-
-    @Override
-    public void OnError(String error) {
-
     }
 }
